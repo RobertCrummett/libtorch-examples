@@ -4,6 +4,11 @@ project(examples)
 find_package(Torch REQUIRED)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
 
+find_package(OpenCV REQUIRED COMPONENTS core imgproc imgcodecs)
+
+message(STATUS "OpenCV include dirs: ${OpenCV_INCLUDE_DIRS}")
+message(STATUS "OpenCV libraries: ${OpenCV_LIBS}")
+
 add_executable(example-mnist example-mnist.cpp)
 target_link_libraries(example-mnist "${TORCH_LIBRARIES}")
 set_property(TARGET example-mnist PROPERTY CXX_STANDARD 17)
@@ -11,6 +16,14 @@ set_property(TARGET example-mnist PROPERTY CXX_STANDARD 17)
 add_executable(example-autograd example-autograd.cpp)
 target_link_libraries(example-autograd "${TORCH_LIBRARIES}")
 set_property(TARGET example-autograd PROPERTY CXX_STANDARD 17)
+
+include_directories(${OpenCV_INCLUDE_DIRS})
+add_executable(example-custom-dataset "example-custom-dataset.cpp")
+target_link_libraries(example-custom-dataset "${OpenCV_LIBS}")
+target_link_libraries(example-custom-dataset "${TORCH_LIBRARIES}")
+set_property(TARGET example-custom-dataset PROPERTY CXX_STANDARD 17)
+
+configure_file("info.txt" "info.txt" COPYONLY)
 
 # The following code block is suggested to be used on Windows.
 # According to https://github.com/pytorch/pytorch/issues/25457,
@@ -24,6 +37,12 @@ if (MSVC)
 		$<TARGET_FILE_DIR:example-app>)
 
 	add_custom_command(TARGET example-autograd
+		POST_BUILD
+		COMMAND ${CMAKE_COMMAND} -E copy_if_different
+		${TORCH_DLLS}
+		$<TARGET_FILE_DIR:example-app>)
+
+	add_custom_command(TARGET example-custom-dataset
 		POST_BUILD
 		COMMAND ${CMAKE_COMMAND} -E copy_if_different
 		${TORCH_DLLS}
