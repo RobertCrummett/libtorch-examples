@@ -1,2 +1,5 @@
 build/
 data/
+*.pt
+.DS_Store
+argparse/
